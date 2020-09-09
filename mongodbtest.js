@@ -1,0 +1,1 @@
+db.WebCrawlerCollection.insert({"index": "0","title":null,"Reply":null,"Likes":null,"Hates":null});

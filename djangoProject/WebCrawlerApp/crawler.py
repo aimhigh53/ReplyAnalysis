@@ -4,6 +4,7 @@ import os
 import time
 import requests
 
+
 from bs4 import BeautifulSoup
 # from .models import search
 
@@ -12,7 +13,10 @@ from django.http import HttpResponse,JsonResponse
 from django_pandas.io import read_frame
 from django.forms.models import model_to_dict
 from django.shortcuts import render
+
 import pandas as pd
+
+import pandas_csv
 import numpy as np
 
 from WebCrawlerApp.chromedriver import generate_chrome
@@ -64,21 +68,19 @@ def backToMainPage():
 def getTopFive(i):
     loadPage()
     elements=soup.select('#wrap > table > tbody > tr > td.content > div > div:nth-child('+str(i)+') > ol> li')
-    titledic={}
+    titlelist=[]
 
     cnt=0
     for element in elements:
-        cnt+=1
+
         title = element.select_one('dl > dt > a').text
-        print('[',cnt,']번째 제목',title)
 
         if element.select_one('dl > dd > span.lede'):
             title=title+element.select_one('dl > dd > span.lede').text
-            print(element.select_one('dl > dd > span.lede').text)
 
-        titledic[cnt] = title
+        titlelist.append(title)
 
-    return titledic
+    return titlelist
 
 
 #top5 댓글 가져오기
@@ -86,6 +88,7 @@ def getTopFive(i):
 def getReply(i,j):
     replylist=[]
     collecttime = str(datetime.utcnow().replace(microsecond=0) + timedelta(hours=9))[:16]
+    print(i,j)
     clicknews=chrome.find_element_by_xpath('//*[@id="wrap"]/table/tbody/tr/td[2]/div/div['+str(i)+']/ol/li['+str(j)+']/dl/dt/a')
     clicknews.click()
     time.sleep(1)
@@ -109,26 +112,72 @@ def getReply(i,j):
         cnt += 1
         print('[', cnt, ']번째')
         print(content.text,like.text,hate.text)
-        replylist.append(['[', cnt, ']번째',collecttime,content.text,like.text,hate.text])
+        replylist.append([cnt,collecttime,content.text,like.text,hate.text])
+    backToMainPage()
     return replylist
 
     # for reply in replys:
     #     replycontent = reply
     #     print(replycontent)
 
-    time.sleep(1)
+    time.sleep(2)
 
 
 
+#return list
+# print(getTopFive(5))
+
+#   replylist.append(['[', cnt, ']번째',collecttime,content.text,like.text,hate.text]) list반환
+# print(getReply(5,1))
+
+# df = pd.DataFrame({'Title': ['None'], 'ReplyIdx': ['None'],'CrawlingTime':['None'],'Content':['None'],'like':['None'],'hate':['None']})
+df=pd.DataFrame(np.array([[None,None,None,None,None,None]]),columns=['Title','ReplyIndex','CrawlingTime','Content','Like','Hate'])
+s=0
 for i in range(5,10):
-    titledic = getTopFive(i)
-    replylist=[]
+    titlelist=getTopFive(i)
+    print(titlelist)
     for j in range(1,6):
-        replylist.append(getReply(i,j))
-        backToMainPage()
+        replylist=getReply(i,j)
+        sorted(replylist,key=lambda replylist:replylist[0])
+        title=titlelist[j-1]
 
-    for index,title,replys in zip(titledic,titledic.values(),replylist):
-        print(index,title,replys)
+
+        for replyone in replylist:
+            addrow=[str(title),str(replyone[0]),str(replyone[1]),str(replyone[2]),str(replyone[3]),str(replyone[4])]
+            df.loc[s] = addrow
+            s+=1
+
+
+df.to_csv("/Users/ins25k/Desktop/pycharm/djangoProject/WebCrawlerApp/Data/NaverReplyList.csv", mode='a', header=False,encoding='utf-8')
+
+
+
+
+
+
+
+
+
+# for i in range(5,10):
+#     titledic = getTopFive(i)
+#     replylist=[]
+#     Data=df(data={'title':['null'],'reply':['null']})
+#     for j in range(1,6):
+#         replylist.append(getReply(i,j))
+#         backToMainPage()
+#         for title, replys in zip(titledic.values(), replylist):
+#             s=0
+#             for k in replys:
+#                 Data.loc[s]=title+str(k)
+#                 s+=1
+#         print(Data)
+#
+        #dataframe을 만든 뒤 csv파일에 넣음
+        #df를 먼저짜봐야,,,
+        # for index,title,replys in zip(titledic,titledic.values(),replylist):
+
+
+    # to_es.to_elastic(insertdata)
 
     #5개 top section, 5개 기사의 리플 가져오기
 
