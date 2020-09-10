@@ -88,7 +88,7 @@ def getTopFive(i):
 def getReply(i,j):
     replylist=[]
     collecttime = str(datetime.utcnow().replace(microsecond=0) + timedelta(hours=9))[:16]
-    print(i,j)
+
     clicknews=chrome.find_element_by_xpath('//*[@id="wrap"]/table/tbody/tr/td[2]/div/div['+str(i)+']/ol/li['+str(j)+']/dl/dt/a')
     clicknews.click()
     time.sleep(1)
