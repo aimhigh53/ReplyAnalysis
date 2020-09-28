@@ -16,7 +16,6 @@ from django.shortcuts import render
 
 import pandas as pd
 
-import pandas_csv
 import numpy as np
 
 from WebCrawlerApp.chromedriver import generate_chrome
@@ -75,7 +74,7 @@ def getTtile(i):
     return title
 
 
-#top5 댓글 가져오기
+#top3 댓글 가져오기
 
 def getReply(i):
     replylist=[]
@@ -88,8 +87,8 @@ def getReply(i):
     loadPage()
 
     ###여기가안된
-    contents = chrome.find_elements_by_css_selector('dd.best_cmtcontent_214818821')
-    likes = chrome.find_elements_by_css_selector('strong#cmt_o_cnt_214818821')
+    contents = soup.select('#best_cmtcontent_215014350')
+    likes = soup.select('')
     hates = chrome.find_elements_by_css_selector('strong#cmt_x_cnt_214818821')
     ###다
 

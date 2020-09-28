@@ -16,7 +16,6 @@ from django.shortcuts import render
 
 import pandas as pd
 
-import pandas_csv
 import numpy as np
 
 from WebCrawlerApp.chromedriver import generate_chrome
@@ -56,6 +55,7 @@ time.sleep(3)
 
 html = chrome.page_source
 soup = BeautifulSoup(html, 'lxml')
+collecttime = str(datetime.utcnow().replace(microsecond=0) + timedelta(hours=9))[:16]
 
 def loadPage():
     html = chrome.page_source
@@ -87,7 +87,7 @@ def getTopFive(i):
 
 def getReply(i,j):
     replylist=[]
-    collecttime = str(datetime.utcnow().replace(microsecond=0) + timedelta(hours=9))[:16]
+
 
     clicknews=chrome.find_element_by_xpath('//*[@id="wrap"]/table/tbody/tr/td[2]/div/div['+str(i)+']/ol/li['+str(j)+']/dl/dt/a')
     clicknews.click()
@@ -116,21 +116,11 @@ def getReply(i,j):
     backToMainPage()
     return replylist
 
-    # for reply in replys:
-    #     replycontent = reply
-    #     print(replycontent)
 
     time.sleep(2)
 
 
 
-#return list
-# print(getTopFive(5))
-
-#   replylist.append(['[', cnt, ']번째',collecttime,content.text,like.text,hate.text]) list반환
-# print(getReply(5,1))
-
-# df = pd.DataFrame({'Title': ['None'], 'ReplyIdx': ['None'],'CrawlingTime':['None'],'Content':['None'],'like':['None'],'hate':['None']})
 df=pd.DataFrame(np.array([[None,None,None,None,None,None]]),columns=['Title','ReplyIndex','CrawlingTime','Content','Like','Hate'])
 s=0
 for i in range(5,10):
@@ -148,38 +138,11 @@ for i in range(5,10):
             s+=1
 
 
-df.to_csv("/Users/ins25k/Desktop/pycharm/djangoProject/WebCrawlerApp/Data/NaverReplyList.csv", mode='a', header=False,encoding='utf-8')
+df.to_csv("/Users/ins25k/Desktop/pycharm/djangoProject/WebCrawlerApp/Data/NaverReplyList"+collecttime+".csv", mode='a', header=['Title','ReplyIndex','CrawlingTime','Content','Like','Hate'],encoding='utf-8-sig')
 
 
 
 
-
-
-
-
-
-# for i in range(5,10):
-#     titledic = getTopFive(i)
-#     replylist=[]
-#     Data=df(data={'title':['null'],'reply':['null']})
-#     for j in range(1,6):
-#         replylist.append(getReply(i,j))
-#         backToMainPage()
-#         for title, replys in zip(titledic.values(), replylist):
-#             s=0
-#             for k in replys:
-#                 Data.loc[s]=title+str(k)
-#                 s+=1
-#         print(Data)
-#
-        #dataframe을 만든 뒤 csv파일에 넣음
-        #df를 먼저짜봐야,,,
-        # for index,title,replys in zip(titledic,titledic.values(),replylist):
-
-
-    # to_es.to_elastic(insertdata)
-
-    #5개 top section, 5개 기사의 리플 가져오기
 
 
 
