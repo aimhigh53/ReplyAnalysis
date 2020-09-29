@@ -15,7 +15,6 @@ from django.forms.models import model_to_dict
 from django.shortcuts import render
 
 import pandas as pd
-
 import numpy as np
 
 from WebCrawlerApp.chromedriver import generate_chrome

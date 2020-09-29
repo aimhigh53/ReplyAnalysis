@@ -8,14 +8,16 @@ import requests
 from bs4 import BeautifulSoup
 # from .models import search
 
+from elasticsearch import helpers,Elasticsearch
 from django.views import View
 from django.http import HttpResponse,JsonResponse
 from django_pandas.io import read_frame
 from django.forms.models import model_to_dict
 from django.shortcuts import render
 
-import pandas as pd
+from WebCrawlerApp.searchfile.navertosearch import rec_to_actions
 
+import pandas as pd
 import numpy as np
 
 from WebCrawlerApp.chromedriver import generate_chrome
@@ -56,6 +58,8 @@ time.sleep(3)
 html = chrome.page_source
 soup = BeautifulSoup(html, 'lxml')
 collecttime = str(datetime.utcnow().replace(microsecond=0) + timedelta(hours=9))[:16]
+
+es=Elasticsearch()
 
 def loadPage():
     html = chrome.page_source
@@ -139,7 +143,7 @@ for i in range(5,10):
 
 
 df.to_csv("/Users/ins25k/Desktop/pycharm/djangoProject/WebCrawlerApp/Data/NaverReplyList"+collecttime+".csv", mode='a', header=['Title','ReplyIndex','CrawlingTime','Content','Like','Hate'],encoding='utf-8-sig')
-
+es.bulk(rec_to_actions(df))
 
 
 

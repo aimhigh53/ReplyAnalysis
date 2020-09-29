@@ -1,26 +1,19 @@
-import json
 import sys
 import os
 import time
-import requests
-
 
 from bs4 import BeautifulSoup
 # from .models import search
 
-from django.views import View
-from django.http import HttpResponse,JsonResponse
-from django_pandas.io import read_frame
-from django.forms.models import model_to_dict
-from django.shortcuts import render
 from selenium.common.exceptions import NoSuchElementException
+from elasticsearch import helpers,Elasticsearch
 
 import pandas as pd
-
 import numpy as np
 
 from WebCrawlerApp.chromedriver import generate_chrome
 from datetime import datetime, timedelta
+from WebCrawlerApp.searchfile.daumtosearch import rec_to_actions
 
 
 PROJECT_DIR = str(os.path.dirname(os.path.abspath(__file__)))
@@ -58,6 +51,8 @@ html = chrome.page_source
 soup = BeautifulSoup(html, 'lxml')
 collecttime = str(datetime.utcnow().replace(microsecond=0) + timedelta(hours=9))[:16]
 
+es=Elasticsearch()
+
 def loadPage():
     html = chrome.page_source
     soup = BeautifulSoup(html, 'lxml')
@@ -80,15 +75,16 @@ def getTitle(i):
 def getReply(i):
     replylist=[]
 
-    clicknews=chrome.find_element_by_xpath('// *[ @ id = "mArticle"] / div[2] / ul[3] / li['+str(i)+'] / div[2] / strong / a')
-    clicknews.click()
-    time.sleep(1)
+    try:
+        clicknews = chrome.find_element_by_xpath(
+            '// *[ @ id = "mArticle"] / div[2] / ul[3] / li[' + str(i) + '] / div[2] / strong / a')
+        clicknews.click()
+        time.sleep(1)
+    except NoSuchElementException:
+        print("No Found")
+        return
 
     loadPage()
-
-
-
-
     descsort=chrome.find_element_by_xpath('//*[@id="alex-area"]/div/div/div/div[3]/ul[1]/li[2]/button/span/span')
     descsort.click()
     time.sleep(1)
@@ -151,27 +147,4 @@ for i in range(1,51):
     print(df)
 
 df.to_csv("/Users/ins25k/Desktop/pycharm/djangoProject/WebCrawlerApp/Data/DaumReplyList"+collecttime+".csv", mode='a', header=['Title','ReplyIndex','CrawlingTime','Content','Like','Hate'],encoding='utf-8-sig')
-
-
-# s=0
-# for i in range(1,51):
-#     titlelist=getTitle(i)
-#     print(titlelist)
-#     for j in range(1,6):
-#         replylist=getReply(i,j)
-#         sorted(replylist,key=lambda replylist:replylist[0])
-#         title=titlelist[j-1]
-#
-#
-#         for replyone in replylist:
-#             addrow=[str(title),str(replyone[0]),str(replyone[1]),str(replyone[2]),str(replyone[3]),str(replyone[4])]
-#             df.loc[s] = addrow
-#             s+=1
-
-
-#df.to_csv("/Users/ins25k/Desktop/pycharm/djangoProject/WebCrawlerApp/Data/NaverReplyList"+collecttime+".csv", mode='a', header=['Title','ReplyIndex','CrawlingTime','Content','Like','Hate'],encoding='utf-8-sig')
-
-
-
-
-
+es.bulk(rec_to_actions(df))
